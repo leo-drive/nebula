@@ -34,9 +34,13 @@ VelodyneHwInterfaceRosWrapper::VelodyneHwInterfaceRosWrapper(const rclcpp::NodeO
   // register scan callback and publisher
   hw_interface_.RegisterScanCallback(std::bind(
     &VelodyneHwInterfaceRosWrapper::ReceiveScanDataCallback, this, std::placeholders::_1));
+  hw_interface_.RegisterScanPhaseCallback(std::bind(
+    &VelodyneHwInterfaceRosWrapper::ReceiveScanPhaseDataCallback, this, std::placeholders::_1));
   velodyne_scan_pub_ = this->create_publisher<velodyne_msgs::msg::VelodyneScan>(
     "velodyne_packets",
     rclcpp::SensorDataQoS(rclcpp::KeepLast(10)).best_effort().durability_volatile());
+  scan_phase_pub_ = this->create_publisher<std_msgs::msg::UInt16>(
+    "scan_phase", rclcpp::SensorDataQoS(rclcpp::KeepLast(10)).best_effort().durability_volatile());
 
   if (this->setup_sensor) {
     set_param_res_ = this->add_on_set_parameters_callback(
@@ -59,8 +63,14 @@ Status VelodyneHwInterfaceRosWrapper::StreamStart()
   return interface_status_;
 }
 
-Status VelodyneHwInterfaceRosWrapper::StreamStop() { return Status::OK; }
-Status VelodyneHwInterfaceRosWrapper::Shutdown() { return Status::OK; }
+Status VelodyneHwInterfaceRosWrapper::StreamStop()
+{
+  return Status::OK;
+}
+Status VelodyneHwInterfaceRosWrapper::Shutdown()
+{
+  return Status::OK;
+}
 
 Status VelodyneHwInterfaceRosWrapper::InitializeHwInterface(  // todo: don't think this is needed
   const drivers::SensorConfigurationBase & sensor_configuration)
@@ -229,6 +239,13 @@ void VelodyneHwInterfaceRosWrapper::ReceiveScanDataCallback(
   scan_buffer->header.frame_id = sensor_configuration_.frame_id;
   scan_buffer->header.stamp = scan_buffer->packets.front().stamp;
   velodyne_scan_pub_->publish(*scan_buffer);
+}
+
+void VelodyneHwInterfaceRosWrapper::ReceiveScanPhaseDataCallback(
+  std::unique_ptr<std_msgs::msg::UInt16> scan_phase)
+{
+  // Publish
+  scan_phase_pub_->publish(*scan_phase);
 }
 
 std::string VelodyneHwInterfaceRosWrapper::GetPtreeValue(
