@@ -102,6 +102,13 @@ void VelodyneDriverRosWrapper::ReceiveScanPhaseMsgCallback(
   RCLCPP_INFO(get_logger(), "Set scan phase to %hu", scan_phase_msg->data);
 }
 
+void VelodyneDriverRosWrapper::ReceiveScanPhaseMsgCallback(
+  const std_msgs::msg::UInt16::SharedPtr scan_phase_msg)
+{
+  driver_ptr_->SetScanPhase(scan_phase_msg->data);
+  RCLCPP_INFO(get_logger(), "Set scan phase to %hu", scan_phase_msg->data);
+}
+
 void VelodyneDriverRosWrapper::PublishCloud(
   std::unique_ptr<sensor_msgs::msg::PointCloud2> pointcloud,
   const rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr & publisher)
