@@ -12,6 +12,7 @@
 
 #include "velodyne_msgs/msg/velodyne_packet.hpp"
 #include "velodyne_msgs/msg/velodyne_scan.hpp"
+#include "std_msgs/msg/u_int16.hpp"
 
 #include <curl/curl.h>
 
@@ -52,6 +53,7 @@ class VelodyneHwInterfaceRosWrapper final : public rclcpp::Node, NebulaHwInterfa
 
   /// @brief Received Velodyne message publisher
   rclcpp::Publisher<velodyne_msgs::msg::VelodyneScan>::SharedPtr velodyne_scan_pub_;
+  rclcpp::Publisher<std_msgs::msg::UInt16>::SharedPtr scan_phase_pub_;
 
   /// @brief Initializing hardware interface ros wrapper
   /// @param sensor_configuration SensorConfiguration for this driver
@@ -61,6 +63,10 @@ class VelodyneHwInterfaceRosWrapper final : public rclcpp::Node, NebulaHwInterfa
   /// @brief Callback for receiving VelodyneScan
   /// @param scan_buffer Received VelodyneScan
   void ReceiveScanDataCallback(std::unique_ptr<velodyne_msgs::msg::VelodyneScan> scan_buffer);
+
+  /// @brief Callback for receiving VelodyneScan
+  /// @param scan_buffer Received VelodyneScan
+  void ReceiveScanPhaseDataCallback(std::unique_ptr<std_msgs::msg::UInt16> scan_phase);
 
 public:
   explicit VelodyneHwInterfaceRosWrapper(const rclcpp::NodeOptions & options);
