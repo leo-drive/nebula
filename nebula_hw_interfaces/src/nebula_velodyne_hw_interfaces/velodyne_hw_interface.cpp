@@ -99,6 +99,27 @@ void VelodyneHwInterface::ReceiveCloudPacketCallback(const std::vector<uint8_t> 
   }
 
   scan_cloud_ptr_->packets.emplace_back(velodyne_packet);
+
+  // get the timestamp of the current packet as chrono::duration
+  //  const auto time_first_part = std::chrono::seconds(scan->packets.back().stamp.sec);
+  //  const auto time_second_part = std::chrono::nanoseconds(scan->packets.back().stamp.nanosec);
+  //  const auto time_stamp = time_first_part + time_second_part;
+
+  // if it is the first packet, set the first publish time
+  if (!first_pub_time_.has_value()) {
+    first_pub_time_.emplace(std::chrono::ceil<std::chrono::seconds>(now));
+    RCLCPP_INFO_STREAM(
+      (*parent_node_logger), "First publish time: " << first_pub_time_->count() << " ns");
+  }
+
+  // skip until the first publish time is reached
+  if (now < *first_pub_time_) {
+    scan->packets.pop_back();
+    RCLCPP_INFO_STREAM(
+      (*parent_node_logger), "Skipping packet with timestamp: " << time_stamp.count() << " ns");
+    continue;
+  }
+
   processed_packets_++;
 
   // Check if scan is complete
