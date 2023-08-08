@@ -59,7 +59,9 @@ bool Vlp16Decoder::hasScanned() { return has_scanned_; }
 std::tuple<drivers::NebulaPointCloudPtr, double> Vlp16Decoder::get_pointcloud()
 {
   double phase = angles::from_degrees(static_cast<double>(scan_phase_) / 100);
-  std::cout << "phase: " << static_cast<double>(scan_phase_) / 100 << '\n';
+
+  std::cout << "phase in degrees: " << scan_phase_ << std::endl;
+  std::cout << "phase in radians: " << phase << std::endl << std::endl;
 
   if (!scan_pc_->points.empty()) {
     auto current_azimuth = scan_pc_->points.back().azimuth;
