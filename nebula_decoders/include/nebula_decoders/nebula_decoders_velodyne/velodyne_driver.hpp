@@ -45,6 +45,8 @@ public:
   Status SetCalibrationConfiguration(
     const CalibrationConfigurationBase & calibration_configuration) override;
 
+  Status SetScanPhase(const uint16_t& phase);
+
   /// @brief Get current status of this driver
   /// @return Current status
   Status GetStatus();

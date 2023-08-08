@@ -32,6 +32,9 @@ VelodyneDriverRosWrapper::VelodyneDriverRosWrapper(const rclcpp::NodeOptions & o
   velodyne_scan_sub_ = create_subscription<velodyne_msgs::msg::VelodyneScan>(
     "velodyne_packets", rclcpp::SensorDataQoS(),
     std::bind(&VelodyneDriverRosWrapper::ReceiveScanMsgCallback, this, std::placeholders::_1));
+  scan_phase_sub_ = create_subscription<std_msgs::msg::UInt16>(
+    "scan_phase", rclcpp::SensorDataQoS(),
+    std::bind(&VelodyneDriverRosWrapper::ReceiveScanPhaseMsgCallback, this, std::placeholders::_1));
   nebula_points_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
     "velodyne_points", rclcpp::SensorDataQoS());
   aw_points_base_pub_ =
@@ -76,14 +79,21 @@ void VelodyneDriverRosWrapper::ReceiveScanMsgCallback(
   if (
     aw_points_ex_pub_->get_subscription_count() > 0 ||
     aw_points_ex_pub_->get_intra_process_subscription_count() > 0) {
-    const auto autoware_ex_cloud =
-      nebula::drivers::convertPointXYZIRCAEDTToPointXYZIRADT(pointcloud, 0.0);//velodyne drivers originally doesn't use absolute time
+    const auto autoware_ex_cloud = nebula::drivers::convertPointXYZIRCAEDTToPointXYZIRADT(
+      pointcloud, 0.0);  // velodyne drivers originally doesn't use absolute time
     auto ros_pc_msg_ptr = std::make_unique<sensor_msgs::msg::PointCloud2>();
     pcl::toROSMsg(*autoware_ex_cloud, *ros_pc_msg_ptr);
     ros_pc_msg_ptr->header.stamp =
       rclcpp::Time(SecondsToChronoNanoSeconds(std::get<1>(pointcloud_ts)).count());
     PublishCloud(std::move(ros_pc_msg_ptr), aw_points_ex_pub_);
   }
+}
+
+void VelodyneDriverRosWrapper::ReceiveScanPhaseMsgCallback(
+  const std_msgs::msg::UInt16::SharedPtr scan_phase_msg)
+{
+  driver_ptr_->SetScanPhase(scan_phase_msg->data);
+  RCLCPP_INFO(get_logger(), "Set scan phase to %hu", scan_phase_msg->data);
 }
 
 void VelodyneDriverRosWrapper::PublishCloud(
@@ -108,7 +118,10 @@ Status VelodyneDriverRosWrapper::InitializeDriver(
   return driver_ptr_->GetStatus();
 }
 
-Status VelodyneDriverRosWrapper::GetStatus() { return wrapper_status_; }
+Status VelodyneDriverRosWrapper::GetStatus()
+{
+  return wrapper_status_;
+}
 
 Status VelodyneDriverRosWrapper::GetParameters(
   drivers::VelodyneSensorConfiguration & sensor_configuration,
