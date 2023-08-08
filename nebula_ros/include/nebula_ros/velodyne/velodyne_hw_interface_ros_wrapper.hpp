@@ -66,7 +66,7 @@ class VelodyneHwInterfaceRosWrapper final : public rclcpp::Node, NebulaHwInterfa
 
   /// @brief Callback for receiving VelodyneScan
   /// @param scan_buffer Received VelodyneScan
-  void ReceiveScanPhaseDataCallback(std::unique_ptr<std_msgs::msg::UInt16> scan_phase);
+  void ReceiveScanPhaseDataCallback(std_msgs::msg::UInt16 scan_phase);
 
 public:
   explicit VelodyneHwInterfaceRosWrapper(const rclcpp::NodeOptions & options);

@@ -62,7 +62,7 @@ Status VelodyneHwInterface::RegisterScanCallback(
 }
 
 Status VelodyneHwInterface::RegisterScanPhaseCallback(
-  std::function<void(std::unique_ptr<std_msgs::msg::UInt16>)> scan_phase_callback)
+  std::function<void(std_msgs::msg::UInt16)> scan_phase_callback)
 {
   scan_phase_callback_ = std::move(scan_phase_callback);
   return Status::OK;
@@ -83,7 +83,6 @@ void VelodyneHwInterface::ReceiveCloudPacketCallback(const std::vector<uint8_t> 
   velodyne_packet.stamp.sec = static_cast<int>(now_secs);
   velodyne_packet.stamp.nanosec =
     static_cast<int>((now_nanosecs / 1000000000. - static_cast<double>(now_secs)) * 1000000000);
-  scan_cloud_ptr_->packets.emplace_back(velodyne_packet);
 
   // get the timestamp of the current packet as chrono::duration
   //  const auto time_first_part = std::chrono::seconds(scan->packets.back().stamp.sec);
@@ -91,26 +90,40 @@ void VelodyneHwInterface::ReceiveCloudPacketCallback(const std::vector<uint8_t> 
   //  const auto time_stamp = time_first_part + time_second_part;
 
   // if it is the first packet, set the first publish time
+  std::chrono::nanoseconds time_stamp =
+    std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch());
   if (!first_pub_time_.has_value()) {
-    first_pub_time_.emplace(std::chrono::ceil<std::chrono::seconds>(now));
+    first_pub_time_.emplace(std::chrono::ceil<std::chrono::seconds>(time_stamp));
     RCLCPP_INFO_STREAM(
       (*parent_node_logger), "First publish time: " << first_pub_time_->count() << " ns");
   }
 
   // skip until the first publish time is reached
-  if (now < *first_pub_time_) {
-    scan->packets.pop_back();
-    RCLCPP_INFO_STREAM(
-      (*parent_node_logger), "Skipping packet with timestamp: " << time_stamp.count() << " ns");
-    continue;
+  if (time_stamp < *first_pub_time_) {
+    //    RCLCPP_INFO_STREAM(
+    //      (*parent_node_logger), "Skipping packet with timestamp: " << time_stamp.count() << "
+    //      ns");
+    return;
   }
 
+  scan_cloud_ptr_->packets.emplace_back(velodyne_packet);
   processed_packets_++;
 
   // Check if scan is complete
   packet_first_azm_ = scan_cloud_ptr_->packets.back().data[2];  // lower word of azimuth block 0
   packet_first_azm_ |= scan_cloud_ptr_->packets.back().data[3]
                        << 8;  // higher word of azimuth block 0
+
+  if (!scan_phase_.has_value()) {
+    scan_phase_.emplace(packet_first_azm_);
+    RCLCPP_INFO_STREAM(
+      (*parent_node_logger), "Scan start/end will be at a phase of " << *scan_phase_ << " degrees");
+
+    // set scan_phase param on the velodyne_pointcloud node
+    std_msgs::msg::UInt16 scan_phase_msg;
+    scan_phase_msg.data = *scan_phase_;
+    scan_phase_callback_(std::move(scan_phase_msg));
+  }
 
   packet_last_azm_ = scan_cloud_ptr_->packets.back().data[1102];
   packet_last_azm_ |= scan_cloud_ptr_->packets.back().data[1103] << 8;

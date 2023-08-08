@@ -241,11 +241,10 @@ void VelodyneHwInterfaceRosWrapper::ReceiveScanDataCallback(
   velodyne_scan_pub_->publish(*scan_buffer);
 }
 
-void VelodyneHwInterfaceRosWrapper::ReceiveScanPhaseDataCallback(
-  std::unique_ptr<std_msgs::msg::UInt16> scan_phase)
+void VelodyneHwInterfaceRosWrapper::ReceiveScanPhaseDataCallback(std_msgs::msg::UInt16 scan_phase)
 {
   // Publish
-  scan_phase_pub_->publish(*scan_phase);
+  scan_phase_pub_->publish(scan_phase);
 }
 
 std::string VelodyneHwInterfaceRosWrapper::GetPtreeValue(

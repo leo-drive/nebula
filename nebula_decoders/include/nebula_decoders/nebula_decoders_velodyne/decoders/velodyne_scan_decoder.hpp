@@ -188,6 +188,10 @@ public:
   virtual void reset_pointcloud(size_t n_pts) = 0;
   /// @brief Resetting overflowed point cloud buffer
   virtual void reset_overflow() = 0;
+
+  void update_scan_phase(const uint16_t & phase){
+    scan_phase_ = phase;
+  }
 };
 
 }  // namespace drivers
