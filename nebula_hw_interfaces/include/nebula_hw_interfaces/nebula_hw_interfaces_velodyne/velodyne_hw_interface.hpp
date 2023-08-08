@@ -11,11 +11,11 @@
 #if (BOOST_VERSION / 100 == 1074)  // Boost 1.74
 #define BOOST_ALLOW_DEPRECATED_HEADERS
 #endif
+#include "boost_tcp_driver/http_client_driver.hpp"
+#include "boost_udp_driver/udp_driver.hpp"
 #include "nebula_common/velodyne/velodyne_common.hpp"
 #include "nebula_common/velodyne/velodyne_status.hpp"
 #include "nebula_hw_interfaces/nebula_hw_interfaces_common/nebula_hw_interface_base.hpp"
-#include "boost_tcp_driver/http_client_driver.hpp"
-#include "boost_udp_driver/udp_driver.hpp"
 
 #include <rclcpp/rclcpp.hpp>
 
@@ -25,7 +25,9 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
+#include <chrono>
 #include <memory>
+#include <optional>
 
 namespace nebula
 {
@@ -44,6 +46,8 @@ private:
     is_valid_packet_; /*Lambda Function Array to verify proper packet size*/
   std::function<void(std::unique_ptr<velodyne_msgs::msg::VelodyneScan> buffer)>
     scan_reception_callback_; /**This function pointer is called when the scan is complete*/
+  std::function<void(std::unique_ptr<std_msgs::msg::UInt16> scan_phase)>
+    scan_phase_callback_; /**This function pointer is called when the scan is complete*/
 
   uint16_t packet_first_azm_ = 0;
   uint16_t packet_first_azm_phased_ = 0;
@@ -52,6 +56,8 @@ private:
   uint16_t prev_packet_first_azm_phased_ = 0;
   uint16_t phase_ = 0;
   uint processed_packets_ = 0;
+  std::optional<uint16_t> scan_phase_;
+  std::optional<std::chrono::nanoseconds> first_pub_time_;
 
   std::shared_ptr<boost::asio::io_context> boost_ctx_;
   std::unique_ptr<::drivers::tcp_driver::HttpClientDriver> http_client_driver_;
@@ -138,6 +144,11 @@ public:
   /// @return Resulting status
   Status RegisterScanCallback(
     std::function<void(std::unique_ptr<velodyne_msgs::msg::VelodyneScan>)> scan_callback);
+  /// @brief Registering callback for PandarScan
+  /// @param scan_callback Callback function
+  /// @return Resulting status
+  Status RegisterScanPhaseCallback(
+    std::function<void(std::unique_ptr<std_msgs::msg::UInt16>)> scan_phase_callback);
 
   /// @brief Parsing JSON string to property_tree
   /// @param str JSON string
