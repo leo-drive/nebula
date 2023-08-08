@@ -29,7 +29,7 @@ Vls128Decoder::Vls128Decoder(
     sin_rot_table_[rot_index] = sinf(rotation);
   }
 
-  phase_ = (uint16_t)round(sensor_configuration_->scan_phase * 100);
+  scan_phase_ = (uint16_t)round(sensor_configuration_->scan_phase * 100);
 
   for (uint8_t i = 0; i < 16; i++) {
     vls_128_laser_azimuth_cache_[i] = (VLS128_CHANNEL_DURATION / VLS128_SEQ_DURATION) * (i + i / 8);
@@ -58,7 +58,11 @@ bool Vls128Decoder::hasScanned() { return has_scanned_; }
 
 std::tuple<drivers::NebulaPointCloudPtr, double> Vls128Decoder::get_pointcloud()
 {
-  double phase = angles::from_degrees(sensor_configuration_->scan_phase);
+  double phase = angles::from_degrees(static_cast<double>(scan_phase_) / 100);
+
+  std::cout << "phase in degrees: " << scan_phase_ << std::endl;
+  std::cout << "phase in radians: " << phase << std::endl << std::endl;
+
   if (!scan_pc_->points.empty()) {
     auto current_azimuth = scan_pc_->points.back().azimuth;
     auto phase_diff = static_cast<size_t>(angles::to_degrees(2*M_PI + current_azimuth - phase)) % 360;
