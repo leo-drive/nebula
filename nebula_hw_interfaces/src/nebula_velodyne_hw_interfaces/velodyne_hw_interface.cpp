@@ -116,9 +116,6 @@ void VelodyneHwInterface::ReceiveCloudPacketCallback(const std::vector<uint8_t> 
 
   // skip until the first publish time is reached
   if (time_stamp < *first_pub_time_) {
-    //    RCLCPP_INFO_STREAM(
-    //      (*parent_node_logger), "Skipping packet with timestamp: " << time_stamp.count() << "
-    //      ns");
     return;
   }
 
