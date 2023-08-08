@@ -48,6 +48,16 @@ Status VelodyneDriver::SetCalibrationConfiguration(
     calibration_configuration.calibration_file + ")");
 }
 
+Status VelodyneDriver::SetScanPhase(const uint16_t & phase)
+{
+  if (driver_status_ == nebula::Status::OK) {
+    scan_decoder_->update_scan_phase(phase);
+  } else {
+    std::cout << "not ok driver_status_ = " << driver_status_ << std::endl;
+  }
+  return driver_status_;
+}
+
 std::tuple<drivers::NebulaPointCloudPtr, double> VelodyneDriver::ConvertScanToPointcloud(
   const std::shared_ptr<velodyne_msgs::msg::VelodyneScan> & velodyne_scan)
 {
@@ -63,7 +73,11 @@ std::tuple<drivers::NebulaPointCloudPtr, double> VelodyneDriver::ConvertScanToPo
   }
   return pointcloud;
 }
-Status VelodyneDriver::GetStatus() { return driver_status_; }
+
+Status VelodyneDriver::GetStatus()
+{
+  return driver_status_;
+}
 
 }  // namespace drivers
 }  // namespace nebula

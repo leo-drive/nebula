@@ -32,6 +32,9 @@ VelodyneDriverRosWrapper::VelodyneDriverRosWrapper(const rclcpp::NodeOptions & o
   velodyne_scan_sub_ = create_subscription<velodyne_msgs::msg::VelodyneScan>(
     "velodyne_packets", rclcpp::SensorDataQoS(),
     std::bind(&VelodyneDriverRosWrapper::ReceiveScanMsgCallback, this, std::placeholders::_1));
+  scan_phase_sub_ = create_subscription<std_msgs::msg::UInt16>(
+    "scan_phase", rclcpp::SensorDataQoS(),
+    std::bind(&VelodyneDriverRosWrapper::ReceiveScanPhaseMsgCallback, this, std::placeholders::_1));
   nebula_points_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
     "velodyne_points", rclcpp::SensorDataQoS());
   aw_points_base_pub_ =
@@ -92,6 +95,13 @@ void VelodyneDriverRosWrapper::ReceiveScanMsgCallback(
   RCLCPP_DEBUG(get_logger(), "PROFILING {'d_total': %lu, 'n_out': %lu}", runtime.count(), pointcloud->size());
 }
 
+void VelodyneDriverRosWrapper::ReceiveScanPhaseMsgCallback(
+  const std_msgs::msg::UInt16::SharedPtr scan_phase_msg)
+{
+  driver_ptr_->SetScanPhase(scan_phase_msg->data);
+  RCLCPP_INFO(get_logger(), "Set scan phase to %hu", scan_phase_msg->data);
+}
+
 void VelodyneDriverRosWrapper::PublishCloud(
   std::unique_ptr<sensor_msgs::msg::PointCloud2> pointcloud,
   const rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr & publisher)
@@ -114,7 +124,10 @@ Status VelodyneDriverRosWrapper::InitializeDriver(
   return driver_ptr_->GetStatus();
 }
 
-Status VelodyneDriverRosWrapper::GetStatus() { return wrapper_status_; }
+Status VelodyneDriverRosWrapper::GetStatus()
+{
+  return wrapper_status_;
+}
 
 Status VelodyneDriverRosWrapper::GetParameters(
   drivers::VelodyneSensorConfiguration & sensor_configuration,

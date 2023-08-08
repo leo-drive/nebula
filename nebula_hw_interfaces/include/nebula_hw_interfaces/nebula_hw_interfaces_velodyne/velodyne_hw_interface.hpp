@@ -46,7 +46,7 @@ private:
     is_valid_packet_; /*Lambda Function Array to verify proper packet size*/
   std::function<void(std::unique_ptr<velodyne_msgs::msg::VelodyneScan> buffer)>
     scan_reception_callback_; /**This function pointer is called when the scan is complete*/
-  std::function<void(std::unique_ptr<std_msgs::msg::UInt16> scan_phase)>
+  std::function<void(std_msgs::msg::UInt16 scan_phase)>
     scan_phase_callback_; /**This function pointer is called when the scan is complete*/
 
   uint16_t packet_first_azm_ = 0;
@@ -147,8 +147,7 @@ public:
   /// @brief Registering callback for PandarScan
   /// @param scan_callback Callback function
   /// @return Resulting status
-  Status RegisterScanPhaseCallback(
-    std::function<void(std::unique_ptr<std_msgs::msg::UInt16>)> scan_phase_callback);
+  Status RegisterScanPhaseCallback(std::function<void(std_msgs::msg::UInt16)> scan_phase_callback);
 
   /// @brief Parsing JSON string to property_tree
   /// @param str JSON string
