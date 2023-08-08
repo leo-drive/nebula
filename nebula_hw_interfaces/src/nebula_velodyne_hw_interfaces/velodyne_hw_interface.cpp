@@ -84,11 +84,6 @@ void VelodyneHwInterface::ReceiveCloudPacketCallback(const std::vector<uint8_t> 
   velodyne_packet.stamp.nanosec =
     static_cast<int>((now_nanosecs / 1000000000. - static_cast<double>(now_secs)) * 1000000000);
 
-  // get the timestamp of the current packet as chrono::duration
-  //  const auto time_first_part = std::chrono::seconds(scan->packets.back().stamp.sec);
-  //  const auto time_second_part = std::chrono::nanoseconds(scan->packets.back().stamp.nanosec);
-  //  const auto time_stamp = time_first_part + time_second_part;
-
   // if it is the first packet, set the first publish time
   std::chrono::nanoseconds time_stamp =
     std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch());
@@ -100,9 +95,6 @@ void VelodyneHwInterface::ReceiveCloudPacketCallback(const std::vector<uint8_t> 
 
   // skip until the first publish time is reached
   if (time_stamp < *first_pub_time_) {
-    //    RCLCPP_INFO_STREAM(
-    //      (*parent_node_logger), "Skipping packet with timestamp: " << time_stamp.count() << "
-    //      ns");
     return;
   }
 
@@ -119,7 +111,7 @@ void VelodyneHwInterface::ReceiveCloudPacketCallback(const std::vector<uint8_t> 
     RCLCPP_INFO_STREAM(
       (*parent_node_logger), "Scan start/end will be at a phase of " << *scan_phase_ << " degrees");
 
-    // set scan_phase param on the velodyne_pointcloud node
+    // set scan_phase param on the decoder node
     std_msgs::msg::UInt16 scan_phase_msg;
     scan_phase_msg.data = *scan_phase_;
     scan_phase_callback_(std::move(scan_phase_msg));
@@ -128,8 +120,8 @@ void VelodyneHwInterface::ReceiveCloudPacketCallback(const std::vector<uint8_t> 
   packet_last_azm_ = scan_cloud_ptr_->packets.back().data[1102];
   packet_last_azm_ |= scan_cloud_ptr_->packets.back().data[1103] << 8;
 
-  packet_first_azm_phased_ = (36000 + packet_first_azm_ - phase_) % 36000;
-  packet_last_azm_phased_ = (36000 + packet_last_azm_ - phase_) % 36000;
+  packet_first_azm_phased_ = (36000 + packet_first_azm_ - *scan_phase_) % 36000;
+  packet_last_azm_phased_ = (36000 + packet_last_azm_ - *scan_phase_) % 36000;
 
   if (processed_packets_ > 1) {
     if (
