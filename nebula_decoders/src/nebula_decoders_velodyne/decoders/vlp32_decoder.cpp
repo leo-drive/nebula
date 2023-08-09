@@ -28,7 +28,7 @@ Vlp32Decoder::Vlp32Decoder(
     cos_rot_table_[rot_index] = cosf(rotation);
     sin_rot_table_[rot_index] = sinf(rotation);
   }
-  phase_ = (uint16_t)round(sensor_configuration_->scan_phase * 100);
+  scan_phase_ = (uint16_t)round(sensor_configuration_->scan_phase * 100);
 
   timing_offsets_.resize(12);
   for (size_t i=0; i < timing_offsets_.size(); ++i){
@@ -58,7 +58,12 @@ bool Vlp32Decoder::hasScanned() { return has_scanned_; }
 
 std::tuple<drivers::NebulaPointCloudPtr, double> Vlp32Decoder::get_pointcloud()
 {
-  double phase = angles::from_degrees(sensor_configuration_->scan_phase);
+  double phase = angles::from_degrees(static_cast<double>(scan_phase_) / 100);
+
+  std::cout << "phase in degrees: " << scan_phase_ << std::endl;
+  std::cout << "phase in radians: " << phase << std::endl << std::endl;
+
+  
   if (!scan_pc_->points.empty()) {
     auto current_azimuth = scan_pc_->points.back().azimuth;
     auto phase_diff = (2*M_PI + current_azimuth - phase);
