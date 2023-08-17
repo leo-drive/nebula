@@ -1,6 +1,8 @@
 #include "nebula_decoders/nebula_decoders_velodyne/decoders/vlp16_decoder.hpp"
+#include <angles/angles.h>
 
 #include <cmath>
+#include <ostream>
 #include <utility>
 
 namespace nebula
@@ -58,15 +60,28 @@ bool Vlp16Decoder::hasScanned() { return has_scanned_; }
 
 std::tuple<drivers::NebulaPointCloudPtr, double> Vlp16Decoder::get_pointcloud()
 {
-  double phase = angles::from_degrees(sensor_configuration_->scan_phase);
+  // TODO(@mebasoglu): Refactor when merge with "dynamic_scan_phase"
+  
+  // double phase = angles::from_degrees(sensor_configuration_->scan_phase);
   if (!scan_pc_->points.empty()) {
-    auto current_azimuth = scan_pc_->points.back().azimuth;
-    auto phase_diff = static_cast<size_t>(angles::to_degrees(2*M_PI + current_azimuth - phase)) % 360;
-    while (phase_diff < M_PI_2 && !scan_pc_->points.empty()) {
+    // auto current_azimuth = scan_pc_->points.back().azimuth;
+    // auto phase_diff = static_cast<size_t>(angles::to_degrees(2*M_PI + current_azimuth - phase)) % 360;
+
+    auto current_azimuth_deg = angles::to_degrees(scan_pc_->points.back().azimuth);
+    auto phase_diff_deg =
+      static_cast<size_t>(360 + current_azimuth_deg - sensor_configuration_->scan_phase) % 360;
+
+    // while (phase_diff < M_PI_2 && !scan_pc_->points.empty()) {
+    while (phase_diff_deg <= 180 && !scan_pc_->points.empty()) {
       overflow_pc_->points.push_back(scan_pc_->points.back());
       scan_pc_->points.pop_back();
-      current_azimuth = scan_pc_->points.back().azimuth;
-      phase_diff = static_cast<size_t>(angles::to_degrees(2*M_PI + current_azimuth - phase)) % 360;
+      
+      // current_azimuth = scan_pc_->points.back().azimuth;
+      // phase_diff = static_cast<size_t>(angles::to_degrees(2*M_PI + current_azimuth - phase)) % 360;
+
+      current_azimuth_deg = angles::to_degrees(scan_pc_->points.back().azimuth);
+      phase_diff_deg =
+        static_cast<size_t>(360 + current_azimuth_deg - sensor_configuration_->scan_phase) % 360;
     }
     overflow_pc_->width = overflow_pc_->points.size();
     scan_pc_->width = scan_pc_->points.size();
