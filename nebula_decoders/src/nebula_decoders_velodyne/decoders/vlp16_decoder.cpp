@@ -61,7 +61,8 @@ bool Vlp16Decoder::hasScanned() { return has_scanned_; }
 std::tuple<drivers::NebulaPointCloudPtr, double> Vlp16Decoder::get_pointcloud()
 {
   // TODO(@mebasoglu): Refactor when merge with "dynamic_scan_phase"
-  
+  // TODO(@mebasoglu): Check this also for VLS-128
+
   // double phase = angles::from_degrees(sensor_configuration_->scan_phase);
   if (!scan_pc_->points.empty()) {
     // auto current_azimuth = scan_pc_->points.back().azimuth;
