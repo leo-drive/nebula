@@ -96,17 +96,10 @@ void VelodyneDriverRosWrapper::ReceiveScanMsgCallback(
 }
 
 void VelodyneDriverRosWrapper::ReceiveScanPhaseMsgCallback(
-  const std_msgs::msg::UInt16::SharedPtr scan_phase_msg)
+  const std_msgs::msg::UInt16 scan_phase_msg)
 {
-  driver_ptr_->SetScanPhase(scan_phase_msg->data);
-  RCLCPP_INFO(get_logger(), "Set scan phase to %hu", scan_phase_msg->data);
-}
-
-void VelodyneDriverRosWrapper::ReceiveScanPhaseMsgCallback(
-  const std_msgs::msg::UInt16::SharedPtr scan_phase_msg)
-{
-  driver_ptr_->SetScanPhase(scan_phase_msg->data);
-  RCLCPP_INFO(get_logger(), "Set scan phase to %hu", scan_phase_msg->data);
+  driver_ptr_->SetScanPhase(scan_phase_msg.data);
+  RCLCPP_INFO(get_logger(), "Set scan phase to %hu", scan_phase_msg.data);
 }
 
 void VelodyneDriverRosWrapper::PublishCloud(

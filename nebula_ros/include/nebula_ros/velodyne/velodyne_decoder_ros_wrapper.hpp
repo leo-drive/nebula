@@ -76,7 +76,7 @@ public:
   void ReceiveScanMsgCallback(const velodyne_msgs::msg::VelodyneScan::SharedPtr scan_msg);
   /// @brief Callback for VelodyneScan subscriber
   /// @param scan_msg Received VelodyneScan
-  void ReceiveScanPhaseMsgCallback(const std_msgs::msg::UInt16 ::SharedPtr scan_phase_msg);
+  void ReceiveScanPhaseMsgCallback(const std_msgs::msg::UInt16 scan_phase_msg);
   /// @brief Get current status of this driver
   /// @return Current status
   Status GetStatus();
