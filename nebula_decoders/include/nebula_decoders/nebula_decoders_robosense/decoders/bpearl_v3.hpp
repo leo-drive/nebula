@@ -234,7 +234,7 @@ private:
 
 public:
   static constexpr float MIN_RANGE = 0.1f;
-  static constexpr float MAX_RANGE = 30.f;
+  static constexpr float MAX_RANGE = 150.f;
   static constexpr size_t MAX_SCAN_BUFFER_POINTS = 1152000;
 
   int getPacketRelativePointTimeOffset(
@@ -269,18 +269,28 @@ public:
 
   bool getSyncStatus(const robosense_packet::bpearl_v3::InfoPacket & info_packet)
   {
-    switch (info_packet.time_sync_mode.value()) {
-      case SYNC_MODE_GPS_FLAG:
-        return true;
-      case SYNC_MODE_E2E_FLAG:
-        return true;
-      case SYNC_MODE_P2P_FLAG:
-        return true;
-      case SYNC_MODE_GPTP_FLAG:
-        return true;
-      default:
-        return false;
-    }
+//    switch (info_packet.time_sync_mode.value()) {
+//      case SYNC_MODE_GPS_FLAG:
+//        return true;
+//      case SYNC_MODE_E2E_FLAG:
+//        return true;
+//      case SYNC_MODE_P2P_FLAG:
+//        return true;
+//      case SYNC_MODE_GPTP_FLAG:
+//        return true;
+//      default:
+//        return false;
+//    }
+      switch (info_packet.sync_status.value()) {
+          case SYNC_STATUS_INVALID_FLAG:
+              return false;
+          case SYNC_STATUS_GPS_SUCCESS_FLAG:
+             return true;
+          case SYNC_STATUS_PTP_SUCCESS_FLAG:
+              return true;
+          default:
+              return false;
+      }
   }
 
   std::map<std::string, std::string> getSensorInfo(

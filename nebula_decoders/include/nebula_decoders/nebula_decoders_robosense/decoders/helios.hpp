@@ -270,6 +270,7 @@ public:
       default:
         return ReturnMode::UNKNOWN;
     }
+
   }
 
   RobosenseCalibrationConfiguration getSensorCalibration(
@@ -280,18 +281,29 @@ public:
 
   bool getSyncStatus(const robosense_packet::helios::InfoPacket & info_packet)
   {
-    switch (info_packet.time_sync_mode.value()) {
-      case SYNC_MODE_GPS_FLAG:
-        return true;
-      case SYNC_MODE_E2E_FLAG:
-        return true;
-      case SYNC_MODE_P2P_FLAG:
-        return true;
-      case SYNC_MODE_GPTP_FLAG:
-        return true;
-      default:
-        return false;
-    }
+//    switch (info_packet.time_sync_mode.value()) {
+//      case SYNC_MODE_GPS_FLAG:
+//        return true;
+//      case SYNC_MODE_E2E_FLAG:
+//        return true;
+//      case SYNC_MODE_P2P_FLAG:
+//        return true;
+//      case SYNC_MODE_GPTP_FLAG:
+//        return true;
+//      default:
+//        return false;
+//    }
+
+      switch (info_packet.sync_status.value()) {
+          case SYNC_STATUS_INVALID_FLAG:
+              return false;
+          case SYNC_STATUS_GPS_SUCCESS_FLAG:
+              return true;
+          case SYNC_STATUS_PTP_SUCCESS_FLAG:
+              return true;
+          default:
+              return false;
+      }
   }
 
   std::map<std::string, std::string> getSensorInfo(
